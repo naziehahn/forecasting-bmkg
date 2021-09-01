@@ -1,0 +1,68 @@
+/*IMPORT DATA*/
+FILENAME REFFILE '/folders/myfolders/Analisis Data/BMKGNTT2019.xlsx';
+
+PROC IMPORT DATAFILE=REFFILE
+	DBMS=XLSX
+	OUT=WORK.BMKG;
+	GETNAMES=YES;
+	DATAROW=2;
+RUN;
+===============================
+/*Model ARIMA Subset*/
+PROC arima data=WORK.BMKG;
+		identify var=Kelembapan_Rata_Rata(1);
+		estimate p=(1,2,5,69) q=(1,2,3,4,9,12,28) method=cls noconstant;
+		forecast lead=31 out=out3;
+run;
+
+PROC print data=WORK.OUT3;
+run;
+
+PROC univariate data=out3 normal;
+		var residual;
+run;
+
+PROC export data=WORK.out3
+	outfile='C:\ARIMA([1,2,5,69],1,[1,2,3,4,9,12,28]).xls'
+	dbms=excel replace;
+run;
+
+==============================
+/*Model AR Subset*/
+PROC arima data=WORK.BMKG;
+		identify var=Kelembapan_Rata_Rata(1);
+		estimate p=(1,2,5,69) q=0 method=cls noconstant;
+		forecast lead=31 out=out3;
+run;
+
+PROC print data=WORK.OUT3;
+run;
+
+PROC univariate data=out3 normal;
+		var residual;
+run;
+
+PROC export data=WORK.out3
+	outfile='C:\ARIMA([1,2,5,69],1,0).xls'
+	dbms=excel replace;
+run;
+
+===============================
+/*Model MA Subset*/
+PROC arima data=WORK.BMKG;
+		identify var=Kelembapan_Rata_Rata(1);
+		estimate p=0 q=(1,2,3,4,9,12,28) method=cls noconstant;
+		forecast lead=31 out=out3;
+run;
+
+PROC print data=WORK.OUT3;
+run;
+
+PROC univariate data=out3 normal;
+		var residual;
+run;
+
+PROC export data=WORK.out3
+	outfile='C:\ARIMA(0,1,[1,2,3,4,9,12,28]).xls'
+	dbms=excel replace;
+run;
